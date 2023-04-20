@@ -1,0 +1,56 @@
+# 静态文件存储绝对路径，配合nginx使用
+xml_abspath: ""
+torrent_abspath: ""
+# 本地rss保留行数
+max_items: 200
+## 启用简繁转换
+#cht_to_chs: 0
+
+sites:
+  dmhy:
+    enable: 1
+    rss_url: https://share.dmhy.org/topics/list/sort_id/2
+    update_time: 6
+    save_torrent: 0
+
+  acgrip:
+    enable: 0
+    rss_url: https://acg.rip/.xml
+    update_time: 6
+    save_torrent: 1
+
+  bangumimoe:
+    enable: 0
+    rss_url: https://bangumi.moe/rss/latest
+    update_time: 6
+    save_torrent: 1
+
+  acgnx:
+    enable: 1
+    rss_url: https://share.acgnx.se/rss-sort-1.xml
+    update_time: 6
+    save_torrent: 0
+
+  kisssub:
+    enable: 1
+    rss_url: http://www.kisssub.org/rss-1.xml
+    update_time: 6
+    save_torrent: 0
+
+  ncraw:
+    enable: 1
+    rss_url: https://ouo.si/feed?
+    update_time: 6
+    save_torrent: 0
+
+  mikan:
+    enable: 0
+    rss_url: https://mikanani.me/RSS/MyBangumi?token=XXXXXX
+    update_time: 10
+    save_torrent: 0
+
+  nyaa:
+    enable: 0
+    rss_url: https://nyaa.si/?page=rss&c=1_3
+    update_time: 10
+    save_torrent: 0
