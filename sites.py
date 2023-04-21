@@ -1,9 +1,12 @@
+import base64
 import os
 import re
 import time
 import urllib.parse
 import schedule
 import feedparser
+import binascii
+from base64 import b32decode
 from datetime import datetime
 from rfeed import *
 from utils.downloader import download_file
@@ -58,15 +61,14 @@ class Site:
         # generate local rss
         items = []
         for t in self.torrents:
-            url = t.magnet
             items.append(Item(
                 title=t.title,
                 link=t.link,
                 pubDate=t.pubdate,
-                enclosure=Enclosure(url=url, type="application/x-bittorrent", length=0),
+                enclosure=Enclosure(url=t.magnet, type="application/x-bittorrent", length=0),
             ))
         self.single_rss = Feed(
-            title="dmhy rss",
+            title=f"RSS Feed {self.local_xml_filename}",
             link=self.rss_url,
             description="Generate by bangumi rss all in one",
             lastBuildDate=datetime.now(),
@@ -99,9 +101,14 @@ class Site:
             elif url.endsWith(".torrent"):
                 t.torrent_url = url
             self.torrents.append(t)
+
         # de-duplicate torrents by magnet
-        s = set()
-        tmp = []
+        tmp = {}
+        regex = re.compile(r"[0-9a-f]{40}")
+        for t in self.torrents:
+            magnet = regex.findall(t.magnet)[0]
+            tmp[magnet] = t
+        self.torrents = tmp.values()
 
         # sort torrents by pubdate and limit amount
         self.torrents = sorted(self.torrents, key=lambda x: x.pubdate, reverse=True)
@@ -134,7 +141,6 @@ class Site:
         ok = self.fetch_rss()
         if ok:
             self.parse_rss()
-            self.cache_torrents()
             self.localize_rss()
             self.merge_rss()
 
@@ -144,7 +150,31 @@ class Site:
 
 
 class Dmhy(Site):
-    magnet_regex = re.compile(r"magnet:?xt=urn:btih:[0-9A-Z]{32}")
+    # dmhy use base32 magnet, length 32
+    magnet_regex = re.compile(r"[0-9A-Z]{32}")
+
+    def parse_rss(self):
+        self.torrents = self.torrents[:0]
+        entries = self.single_feed.entries
+        for e in entries:
+            magnet = e.links[1].href
+            # convert DMHY base32 magnet to hex magnet
+            base32_bytes = re.findall(self.magnet_regex, magnet)[0]
+            base64_bytes = base64.b32decode(base32_bytes.encode('ascii'))
+            hex_bytes = binascii.hexlify(base64_bytes)
+            magnet = "magnet:?xt=urn:btih:" + hex_bytes.decode('ascii')
+            # add trackers and urlencoded it
+            magnet = "&tr=".join([magnet] + config["trackers"])
+            magnet = urllib.parse.quote_plus(magnet)
+            self.torrents.append(Torrent(
+                title=e.title,
+                pubdate=e.published_parsed,
+                link=e.link,
+                magnet=magnet))
+
+
+class Acgnx(Site):
+    magnet_regex = re.compile(r"magnet:\?xt=urn:btih:[0-9a-f]{40}")
 
     def parse_rss(self):
         self.torrents = self.torrents[:0]
@@ -161,6 +191,22 @@ class Dmhy(Site):
                 link=e.link,
                 magnet=magnet))
 
+
+class Kisssub(Site):
+    magnet_regex = re.compile(r"[0-9a-f]{40}")
+
+    def parse_rss(self):
+        self.torrents = self.torrents[:0]
+        entries = self.single_feed.entries
+        for e in entries:
+            magnet = "magnet:?xt=urn:btih:" + re.findall(self.magnet_regex, e.link)[0]
+            magnet = "&tr=".join([magnet] + config["trackers"])
+            magnet = urllib.parse.quote_plus(magnet)
+            self.torrents.append(Torrent(
+                title=e.title,
+                pubdate=e.published_parsed,
+                link=e.link,
+                magnet=magnet))
 
 # class Acgrip(Site):
 #     def parse_rss(self):

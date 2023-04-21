@@ -4,8 +4,6 @@ xml_abspath: /var/www/html/
 total_xml_filename: total.xml
 # 本地汇总rss保留项目数
 max_items: 200
-# 启用简繁转换
-cht_to_chs: 0
 
 sites:
   #  example:
