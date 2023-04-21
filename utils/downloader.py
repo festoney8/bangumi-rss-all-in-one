@@ -21,4 +21,3 @@ def download_file(url: str, abspath: str, filename: str):
             pass
         if not ok:
             time.sleep(config["wait_sec"])
-    return ok
