@@ -17,8 +17,8 @@ def download(url: str, filepath: str) -> bool:
             ok = True
             break
         except Exception as e:
-            logger.exception(e)
-            logger.exception(f"download torrent {url} failed, try {retry_cnt} times")
+            logger.error(f"download torrent {url} failed, try {retry_cnt} times")
+            logger.error(e)
             pass
         if not ok:
             time.sleep(config["wait_sec"])

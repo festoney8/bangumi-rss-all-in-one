@@ -21,22 +21,22 @@ sites:
     enable: 1
     rss_url: https://share.dmhy.org/topics/rss/sort_id/2/rss.xml
     local_xml_file: dmhy.xml
-    refresh_interval: 1
+    refresh_interval: 6
 
   acgnx:
-    enable: 0
+    enable: 1
     rss_url: https://share.acgnx.se/rss-sort-1.xml
     local_xml_file: acgnx.xml
     refresh_interval: 6
 
   kisssub:
-    enable: 0
+    enable: 1
     rss_url: http://www.kisssub.org/rss-1.xml
     local_xml_file: kisssub.xml
     refresh_interval: 6
 
   ncraw:
-    enable: 0
+    enable: 1
     rss_url: https://ouo.si/feed?
     local_xml_file: ncraw.xml
     refresh_interval: 6
@@ -55,22 +55,23 @@ sites:
     refresh_interval: 10
 
   acgrip:
-    # acgrip rss不提供magnet hash
-    # 需全部缓存torrent转换成magnet, 性能不佳
-    enable: 1
+    # acgrip rss不提供magnet
+    # 需全部缓存torrent逐个转换成magnet, 性能不佳
+    enable: 0
     rss_url: https://acg.rip/.xml
     local_xml_file: acgrip.xml
     refresh_interval: 10
 
   bangumimoe:
-    # bangumimoe rss不提供magnet hash
-    # 需全部缓存torrent转换成magnet, 性能不佳
+    # bangumimoe rss不提供magnet
+    # 需全部缓存torrent逐个转换成magnet, 性能不佳
     enable: 0
     rss_url: https://bangumi.moe/rss/latest
     local_xml_file: bangumimoe.xml
     refresh_interval: 6
 
 
+add_trackers_to_magnet: 0
 trackers:
   - https://tracker.mlsub.net:443/announce
   - https://trackers.mlsub.net:443/announce
@@ -86,4 +87,4 @@ trackers:
 # 其他设定
 useragent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
 max_retry: 3
-wait_sec: 5
+wait_sec: 10

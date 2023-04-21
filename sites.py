@@ -26,7 +26,7 @@ class Site:
         self.rss_url = site_config["rss_url"]
         self.refresh_interval = site_config["refresh_interval"]
         self.local_xml_file = site_config["local_xml_file"]
-        self.task_name = self.local_xml_file.replace(".xml", "")
+        self.taskname = self.local_xml_file.replace(".xml", "")
 
         self.single_feed = None
         self.single_rss = None
@@ -40,11 +40,20 @@ class Site:
             retry_cnt += 1
             try:
                 self.single_feed = feedparser.parse(self.rss_url, agent=config["useragent"])
-                ok = True
-                break
+                logger.debug(f"task {self.taskname} fetch feed, http status {self.single_feed.status}")
+                # http status code, usually 200 or 301
+                if self.single_feed.status < 400:
+                    ok = True
+                    break
+                elif self.single_feed.status == 429:
+                    logger.error(f"task {self.taskname} fetch feed failed, "
+                                 f"too many requests, your IP may in blacklist")
+                    break
+                else:
+                    logger.error(f"task {self.taskname} fetch feed failed, http status {self.single_feed.status}")
             except Exception as e:
-                logger.exception(f"fetch rss {self.rss_url} failed, try {retry_cnt} times")
-                logger.exception(e)
+                logger.error(f"fetch rss {self.rss_url} failed")
+                logger.error(e)
                 pass
             if not ok:
                 time.sleep(config["wait_sec"])
@@ -78,7 +87,7 @@ class Site:
         fpath = os.path.join(config["xml_abspath"], self.local_xml_file)
         with open(fpath, "w", encoding="utf8") as f:
             f.write(self.single_rss.rss())
-            logger.info(f"task {self.task_name} save to disk")
+            logger.info(f"task {self.taskname} save to disk")
 
     def merge(self):
         total_xml = os.path.join(config["xml_abspath"], config["total_xml_filename"])
@@ -86,7 +95,7 @@ class Site:
         if not os.path.exists(total_xml):
             with open(total_xml, "w", encoding="utf8") as f:
                 f.write(self.single_rss.rss())
-                logger.debug(f"task {self.task_name} init, save to disk")
+                logger.debug(f"task {self.taskname} init total rss, save to disk")
             return
 
         # merge single site rss and total rss
@@ -94,7 +103,7 @@ class Site:
         if not feed.entries:
             with open(total_xml, "w", encoding="utf8") as f:
                 f.write(self.single_rss.rss())
-                logger.debug(f"task {self.task_name} init, save to disk")
+                logger.debug(f"task {self.taskname} init, save to disk")
             return
         for e in feed.entries:
             self.torrents.append(Torrent(
@@ -134,39 +143,39 @@ class Site:
         fpath = os.path.join(config["xml_abspath"], config["total_xml_filename"])
         with open(fpath, "w", encoding="utf8") as f:
             f.write(total_rss.rss())
-            logger.debug(f"task {self.task_name} merge to total, save to disk")
+            logger.debug(f"task {self.taskname} merge to total, save to disk")
 
     def run(self):
         self.fetch()
         if not self.single_feed or not self.single_feed.entries:
-            logger.error(f"fetch {self.task_name} failed")
+            logger.error(f"fetch {self.taskname} failed")
             return
         try:
             self.parse()
-            logger.info(f"parse {self.task_name}")
+            logger.info(f"parse {self.taskname}")
         except Exception as e:
-            logger.error(f"task {self.task_name} parse failed")
+            logger.error(f"task {self.taskname} parse failed")
             logger.error(e)
             return
         try:
             self.localize()
-            logger.info(f"localize {self.task_name}")
+            logger.info(f"localize {self.taskname}")
         except Exception as e:
-            logger.error(f"task {self.task_name} localize failed")
+            logger.error(f"task {self.taskname} localize failed")
             logger.error(e)
             return
         try:
             self.merge()
-            logger.info(f"merge {self.task_name}")
+            logger.info(f"merge {self.taskname}")
         except Exception as e:
-            logger.error(f"task {self.task_name} merge failed")
+            logger.error(f"task {self.taskname} merge failed")
             logger.error(e)
             return
 
     def register_schedule(self):
         if self.enable:
             schedule.every(self.refresh_interval).minutes.do(self.run)
-            logger.info(f"register schedule {self.task_name}")
+            logger.info(f"register schedule {self.taskname}")
 
 
 # class Common can parse [acgnx, kisssub, ncraw, mikan]
@@ -181,7 +190,7 @@ class Common(Site):
                 pubdate=e.published_parsed,
                 link=e.link,
                 infohash=infohash))
-            logger.debug(f"class Common parse torrent: {infohash}")
+            logger.debug(f"task {self.taskname} parse torrent: {infohash}")
 
 
 class Dmhy(Site):
@@ -195,7 +204,7 @@ class Dmhy(Site):
                 pubdate=e.published_parsed,
                 link=e.link,
                 infohash=infohash))
-            logger.debug(f"class Dmhy parse torrent: {infohash}")
+            logger.debug(f"task {self.taskname} parse torrent: {infohash}")
 
 
 class Nyaa(Site):
@@ -208,7 +217,7 @@ class Nyaa(Site):
                 pubdate=e.published_parsed,
                 link=e.id,
                 infohash=e.nyaa_infohash))
-            logger.debug(f"class Nyaa parse torrent: {e.nyaa_infohash}")
+            logger.debug(f"task {self.taskname} parse torrent: {e.nyaa_infohash}")
 
 
 # class Rewrite can parse [Acgrip, Bangumimoe]
@@ -227,7 +236,7 @@ class Rewrite(Site):
         # convert torrent to infohash
         for t in self.torrents:
             # read infohash from map cache
-            infohash = self.map_infohash[t.link]
+            infohash = self.map_infohash.get(t.link)
             if not infohash:
                 # download and parse torrent file
                 # get infohash then update map cache
@@ -249,4 +258,4 @@ class Rewrite(Site):
                         logger.error(e)
             if infohash:
                 t.infohash = infohash
-            logger.debug(f"class Rewrite parse torrent: {infohash}")
+            logger.debug(f"task {self.taskname} parse torrent: {infohash}")
