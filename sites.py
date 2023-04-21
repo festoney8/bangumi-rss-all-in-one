@@ -149,9 +149,28 @@ class Site:
             schedule.every(self.refresh_interval).minutes.do(self.run)
 
 
+# class Common can parse [acgnx, kisssub, ncraw, mikan]
+class Common(Site):
+    regex = re.compile(r"[0-9a-f]{40}")
+
+    def parse_rss(self):
+        self.torrents = self.torrents[:0]
+        entries = self.single_feed.entries
+        for e in entries:
+            # add trackers to magnet and urlencoded it
+            magnet = "magnet:?xt=urn:btih:" + re.findall(self.regex, e.link)[0]
+            magnet = "&tr=".join([magnet] + config["trackers"])
+            magnet = urllib.parse.quote_plus(magnet)
+            self.torrents.append(Torrent(
+                title=e.title,
+                pubdate=e.published_parsed,
+                link=e.link,
+                magnet=magnet))
+
+
 class Dmhy(Site):
-    # dmhy use base32 magnet, length 32
-    magnet_regex = re.compile(r"[0-9A-Z]{32}")
+    # dmhy use base32 magnet
+    regex = re.compile(r"[0-9A-Z]{32}")
 
     def parse_rss(self):
         self.torrents = self.torrents[:0]
@@ -159,7 +178,7 @@ class Dmhy(Site):
         for e in entries:
             magnet = e.links[1].href
             # convert DMHY base32 magnet to hex magnet
-            base32_bytes = re.findall(self.magnet_regex, magnet)[0]
+            base32_bytes = re.findall(self.regex, magnet)[0]
             base64_bytes = base64.b32decode(base32_bytes.encode('ascii'))
             hex_bytes = binascii.hexlify(base64_bytes)
             magnet = "magnet:?xt=urn:btih:" + hex_bytes.decode('ascii')
@@ -173,39 +192,18 @@ class Dmhy(Site):
                 magnet=magnet))
 
 
-class Acgnx(Site):
-    magnet_regex = re.compile(r"magnet:\?xt=urn:btih:[0-9a-f]{40}")
-
+class Nyaa(Site):
     def parse_rss(self):
         self.torrents = self.torrents[:0]
         entries = self.single_feed.entries
         for e in entries:
-            # add trackers to magnet and urlencoded it
-            magnet = e.links[1].href
-            magnet = re.findall(self.magnet_regex, magnet)[0]
+            magnet = "magnet:?xt=urn:btih:" + e.nyaa_infohash
             magnet = "&tr=".join([magnet] + config["trackers"])
             magnet = urllib.parse.quote_plus(magnet)
             self.torrents.append(Torrent(
                 title=e.title,
                 pubdate=e.published_parsed,
-                link=e.link,
-                magnet=magnet))
-
-
-class Kisssub(Site):
-    magnet_regex = re.compile(r"[0-9a-f]{40}")
-
-    def parse_rss(self):
-        self.torrents = self.torrents[:0]
-        entries = self.single_feed.entries
-        for e in entries:
-            magnet = "magnet:?xt=urn:btih:" + re.findall(self.magnet_regex, e.link)[0]
-            magnet = "&tr=".join([magnet] + config["trackers"])
-            magnet = urllib.parse.quote_plus(magnet)
-            self.torrents.append(Torrent(
-                title=e.title,
-                pubdate=e.published_parsed,
-                link=e.link,
+                link=e.id,
                 magnet=magnet))
 
 # class Acgrip(Site):
@@ -224,7 +222,7 @@ class Kisssub(Site):
 #         for e in entries:
 #             # add trackers to magnet and urlencoded it
 #             magnet = e.links[1].href
-#             magnet = re.findall(self.magnet_regex, magnet)[0]
+#             magnet = re.findall(self.regex, magnet)[0]
 #             magnet = "&tr=".join([magnet] + config["trackers"])
 #             magnet = urllib.parse.quote_plus(magnet)
 #             self.torrents.append(Torrent(
