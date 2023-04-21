@@ -28,14 +28,11 @@ class Site:
     torrents: [Torrent]
     map_info_hash: {}
 
-    def __init__(self, enable: bool, rss_url: str, refresh_interval: int,
-                 local_xml_filename: str, convert_magnet: bool, cache_relpath: str):
-        self.enable = enable
-        self.rss_url = rss_url
-        self.refresh_interval = refresh_interval
-        self.local_xml_filename = local_xml_filename
-        self.convert_magnet = convert_magnet
-        self.cache_relpath = cache_relpath
+    def __init__(self, site_config):
+        self.enable = site_config["enable"]
+        self.rss_url = site_config["rss_url"]
+        self.refresh_interval = site_config["refresh_interval"]
+        self.local_xml_file = site_config["local_xml_file"]
 
     def fetch_rss(self) -> bool:
         ok = False
@@ -70,14 +67,14 @@ class Site:
                 enclosure=Enclosure(url=t.magnet, type="application/x-bittorrent", length=0),
             ))
         self.single_rss = Feed(
-            title=f"RSS Feed {self.local_xml_filename}",
+            title=f"RSS Feed {self.local_xml_file}",
             link=self.rss_url,
             description="Generate by bangumi rss all in one",
             lastBuildDate=datetime.now(),
             items=items
         )
         # save xml file
-        fpath = os.path.join(config["xml_abspath"], self.local_xml_filename)
+        fpath = os.path.join(config["xml_abspath"], self.local_xml_file)
         with open(fpath, "w", encoding="utf8") as f:
             f.write(self.single_feed.rss())
 

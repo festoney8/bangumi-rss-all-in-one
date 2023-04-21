@@ -12,44 +12,44 @@ sites:
   #    # rss链接, 可在目标站点选择具体分类再生成rss
   #    rss_url: https://example.com/rss.xml
   #    # 单个站点rss文件, 与聚合rss不可相同
-  #    local_xml_filename: example.xml
+  #    local_xml_file: example.xml
   #    # 刷新间隔(min), 建议高于5min
   #    refresh_interval: 10
 
   dmhy:
     enable: 1
     rss_url: https://share.dmhy.org/topics/list/sort_id/2
-    local_xml_filename: dmhy.xml
+    local_xml_file: dmhy.xml
     refresh_interval: 6
 
   acgnx:
     enable: 1
     rss_url: https://share.acgnx.se/rss-sort-1.xml
-    local_xml_filename: acgnx.xml
+    local_xml_file: acgnx.xml
     refresh_interval: 6
 
   kisssub:
     enable: 1
     rss_url: http://www.kisssub.org/rss-1.xml
-    local_xml_filename: kisssub.xml
+    local_xml_file: kisssub.xml
     refresh_interval: 6
 
   ncraw:
     enable: 1
     rss_url: https://ouo.si/feed?
-    local_xml_filename: ncraw.xml
+    local_xml_file: ncraw.xml
     refresh_interval: 6
 
   mikan:
     enable: 0
     rss_url: https://mikanani.me/RSS/MyBangumi?token=XXXXXXXXXX
-    local_xml_filename: mikan.xml
+    local_xml_file: mikan.xml
     refresh_interval: 10
 
   nyaa:
     enable: 0
     rss_url: https://nyaa.si/?page=rss&c=1_3
-    local_xml_filename: nyaa.xml
+    local_xml_file: nyaa.xml
     # nyaa rss 刷新间隔必须足够长, 频繁刷新触发IP封禁
     refresh_interval: 10
 
@@ -58,7 +58,7 @@ sites:
     # 需全部缓存torrent转换成magnet, 性能不佳
     enable: 0
     rss_url: https://acg.rip/.xml
-    local_xml_filename: acgrip.xml
+    local_xml_file: acgrip.xml
     refresh_interval: 6
 
   bangumimoe:
@@ -66,7 +66,7 @@ sites:
     # 需全部缓存torrent转换成magnet, 性能不佳
     enable: 0
     rss_url: https://bangumi.moe/rss/latest
-    local_xml_filename: bangumimoe.xml
+    local_xml_file: bangumimoe.xml
     refresh_interval: 6
 
 
