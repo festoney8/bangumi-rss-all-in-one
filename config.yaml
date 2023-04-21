@@ -7,7 +7,7 @@ max_items: 200
 
 sites:
   #  example:
-  #    # 是否开启本站点, 0或1
+  #    # 是否启用本站点, 0或1
   #    enable: 0
   #    # rss链接, 可在目标站点选择具体分类再生成rss
   #    rss_url: https://example.com/rss.xml
@@ -15,72 +15,59 @@ sites:
   #    local_xml_filename: example.xml
   #    # 刷新间隔(min), 建议高于5min
   #    refresh_interval: 10
-  #    # convert_magnet: 将rss中torrent直链转换为magnet, 部分站点需用
-  #    convert_magnet: 1
-  #    # convert_magnet=1时需填写cache_relpath
-  #    # 转换magnet用, torrent将缓存在./torrent_cache/<cache_relpath>/
-  #    cache_relpath: example
 
   dmhy:
     enable: 1
     rss_url: https://share.dmhy.org/topics/list/sort_id/2
     local_xml_filename: dmhy.xml
     refresh_interval: 6
-    convert_magnet: 0
 
   acgnx:
     enable: 1
     rss_url: https://share.acgnx.se/rss-sort-1.xml
     local_xml_filename: acgnx.xml
     refresh_interval: 6
-    convert_magnet: 0
 
   kisssub:
     enable: 1
     rss_url: http://www.kisssub.org/rss-1.xml
     local_xml_filename: kisssub.xml
     refresh_interval: 6
-    convert_magnet: 0
 
   ncraw:
     enable: 1
     rss_url: https://ouo.si/feed?
     local_xml_filename: ncraw.xml
     refresh_interval: 6
-    convert_magnet: 0
 
   mikan:
     enable: 0
     rss_url: https://mikanani.me/RSS/MyBangumi?token=XXXXXXXXXX
     local_xml_filename: mikan.xml
     refresh_interval: 10
-    convert_magnet: 0
-
-  acgrip:
-    # acgrip需缓存torrent, 性能不佳
-    enable: 0
-    rss_url: https://acg.rip/.xml
-    local_xml_filename: acgrip.xml
-    refresh_interval: 6
-    convert_magnet: 1
-    cache_relpath: acgrip
-
-  bangumimoe:
-    # bangumimoe需缓存torrent, 性能不佳
-    enable: 0
-    rss_url: https://bangumi.moe/rss/latest
-    local_xml_filename: bangumimoe.xml
-    refresh_interval: 6
-    convert_magnet: 1
-    cache_relpath: bangumimoe
 
   nyaa:
     enable: 0
     rss_url: https://nyaa.si/?page=rss&c=1_3
     local_xml_filename: nyaa.xml
-    # nyaa rss 刷新间隔必须 > 5min, 频繁刷新触发IP封禁
+    # nyaa rss 刷新间隔必须足够长, 频繁刷新触发IP封禁
     refresh_interval: 10
-    convert_magnet: 0
+
+  acgrip:
+    # acgrip rss不提供magnet hash
+    # 需全部缓存torrent转换成magnet, 性能不佳
+    enable: 0
+    rss_url: https://acg.rip/.xml
+    local_xml_filename: acgrip.xml
+    refresh_interval: 6
+
+  bangumimoe:
+    # bangumimoe rss不提供magnet hash
+    # 需全部缓存torrent转换成magnet, 性能不佳
+    enable: 0
+    rss_url: https://bangumi.moe/rss/latest
+    local_xml_filename: bangumimoe.xml
+    refresh_interval: 6
 
 
 trackers:

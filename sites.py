@@ -1,15 +1,15 @@
-import base64
 import os
 import re
 import time
+import base64
 import urllib.parse
 import schedule
 import feedparser
 import binascii
-from base64 import b32decode
 from datetime import datetime
 from rfeed import *
-from utils.downloader import download_file
+from utils.downloader import download
+from utils.parse_torrent import get_info_hash
 from config import config
 
 
@@ -26,14 +26,16 @@ class Site:
     single_feed: feedparser.FeedParserDict
     single_rss: rfeed.Feed
     torrents: [Torrent]
-    map_torrent_magnet: {}
+    map_info_hash: {}
 
     def __init__(self, enable: bool, rss_url: str, refresh_interval: int,
-                 local_xml_filename: str):
+                 local_xml_filename: str, convert_magnet: bool, cache_relpath: str):
         self.enable = enable
         self.rss_url = rss_url
         self.refresh_interval = refresh_interval
         self.local_xml_filename = local_xml_filename
+        self.convert_magnet = convert_magnet
+        self.cache_relpath = cache_relpath
 
     def fetch_rss(self) -> bool:
         ok = False
@@ -140,9 +142,12 @@ class Site:
     def run(self):
         ok = self.fetch_rss()
         if ok:
-            self.parse_rss()
-            self.localize_rss()
-            self.merge_rss()
+            try:
+                self.parse_rss()
+                self.localize_rss()
+                self.merge_rss()
+            except Exception as e:
+                pass
 
     def register_schedule(self):
         if self.enable:
@@ -206,27 +211,38 @@ class Nyaa(Site):
                 link=e.id,
                 magnet=magnet))
 
-# class Acgrip(Site):
-#     def parse_rss(self):
-#         def _cache_torrents(self):
-#             for t in self.torrents:
-#                 if t.torrent_url.endsWith(".torrent"):
-#                     t_name = t.torrent_url.split("/")[-1]
-#                     abspath = os.path.join(config["torrent_abspath"], self.torrent_cache_relpath)
-#                     # skip when torrent exist
-#                     if not os.path.exists(os.path.join(abspath, t_name)):
-#                         download_file(t.torrent_url, abspath, t_name)
-#
-#         self.torrents = self.torrents[:0]
-#         entries = self.single_feed.entries
-#         for e in entries:
-#             # add trackers to magnet and urlencoded it
-#             magnet = e.links[1].href
-#             magnet = re.findall(self.regex, magnet)[0]
-#             magnet = "&tr=".join([magnet] + config["trackers"])
-#             magnet = urllib.parse.quote_plus(magnet)
-#             self.torrents.append(Torrent(
-#                 title=e.title,
-#                 pubdate=e.published_parsed,
-#                 link=e.link,
-#                 magnet=magnet))
+
+# class Rewrite can parse [Acgrip, Bangumimoe]
+class Rewrite(Site):
+    def parse_rss(self):
+        self.torrents = self.torrents[:0]
+        entries = self.single_feed.entries
+        for e in entries:
+            torrent_url = e.links[1].href
+            self.torrents.append(Torrent(
+                title=e.title,
+                pubdate=e.published_parsed,
+                link=e.link,
+                torrent_url=torrent_url))
+
+        # convert torrent to magnet
+        for t in self.torrents:
+            # read info_hash from map cache
+            info_hash = self.map_info_hash[t.link]
+            if not info_hash:
+                # download and parse torrent file
+                # get info_hash then write map cache
+                t_name = t.torrent_url.split("/")[-1]
+                t_file = os.path.join("torrent_cache", t_name)
+                # if torrent exist, skip download
+                if os.path.exists(t_file):
+                    ok = True
+                else:
+                    ok = download(t.torrent_url, t_file)
+                if ok:
+                    info_hash = get_info_hash(t_file)
+                    self.map_info_hash[t.link] = info_hash
+            if info_hash:
+                t.magnet = "magnet:?xt=urn:btih:" + info_hash
+                t.magnet = "&tr=".join([t.magnet] + config["trackers"])
+                t.magnet = urllib.parse.quote_plus(t.magnet)
