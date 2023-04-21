@@ -1,7 +1,8 @@
-# 静态文件存储绝对路径，配合nginx使用
-xml_abspath: /var/www/html/
+# xml文件存储绝对路径，配合nginx使用
+#xml_abspath: /var/www/html/
+xml_abspath: ""
 # 聚合rss文件名
-total_xml_filename: total.xml
+total_xml_filename: rss.xml
 # 本地汇总rss保留项目数
 max_items: 200
 
@@ -11,7 +12,7 @@ sites:
   #    enable: 0
   #    # rss链接, 可在目标站点选择具体分类再生成rss
   #    rss_url: https://example.com/rss.xml
-  #    # 单个站点rss文件, 与聚合rss不可相同
+  #    # 单个站点rss文件, 与聚合rss名称不可相同
   #    local_xml_file: example.xml
   #    # 刷新间隔(min), 建议高于5min
   #    refresh_interval: 10
@@ -41,13 +42,13 @@ sites:
     refresh_interval: 6
 
   mikan:
-    enable: 0
+    enable: 1
     rss_url: https://mikanani.me/RSS/MyBangumi?token=XXXXXXXXXX
     local_xml_file: mikan.xml
     refresh_interval: 10
 
   nyaa:
-    enable: 0
+    enable: 1
     rss_url: https://nyaa.si/?page=rss&c=1_3
     local_xml_file: nyaa.xml
     # nyaa rss 刷新间隔必须足够长, 频繁刷新触发IP封禁
@@ -56,7 +57,7 @@ sites:
   acgrip:
     # acgrip rss不提供magnet hash
     # 需全部缓存torrent转换成magnet, 性能不佳
-    enable: 0
+    enable: 1
     rss_url: https://acg.rip/.xml
     local_xml_file: acgrip.xml
     refresh_interval: 6
@@ -64,7 +65,7 @@ sites:
   bangumimoe:
     # bangumimoe rss不提供magnet hash
     # 需全部缓存torrent转换成magnet, 性能不佳
-    enable: 0
+    enable: 1
     rss_url: https://bangumi.moe/rss/latest
     local_xml_file: bangumimoe.xml
     refresh_interval: 6
@@ -82,7 +83,7 @@ trackers:
   - http://open.acgnxtracker.com/announce
   - http://open.acgtracker.com:1096/announce
 
-# internal config
+# 其他设定
 useragent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
 max_retry: 3
 wait_sec: 5

@@ -5,14 +5,15 @@ import time
 
 
 def register():
-    dmhy = Dmhy(config["sites"]["dmhy"])
-    acgnx = Common(config["sites"]["acgnx"])
-    kisssub = Common(config["sites"]["kisssub"])
-    mikan = Common(config["sites"]["mikan"])
-    ncraw = Common(config["sites"]["ncraw"])
-    nyaa = Nyaa(config["sites"]["nyaa"])
-    acgrip = Rewrite(config["sites"]["acgrip"])
-    bangumimoe = Rewrite(config["sites"]["bangumimoe"])
+    s = config["sites"]
+    dmhy = Dmhy(s["dmhy"])
+    acgnx = Common(s["acgnx"])
+    kisssub = Common(s["kisssub"])
+    mikan = Common(s["mikan"])
+    ncraw = Common(s["ncraw"])
+    nyaa = Nyaa(s["nyaa"])
+    acgrip = Rewrite(s["acgrip"])
+    bangumimoe = Rewrite(s["bangumimoe"])
 
     dmhy.register_schedule()
     acgnx.register_schedule()
