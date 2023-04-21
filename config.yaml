@@ -1,69 +1,78 @@
 # 静态文件存储绝对路径，配合nginx使用
-xml_abspath: ""
-torrent_abspath: ""
+xml_abspath: /var/www/html/xml
+torrent_abspath: /var/www/html/torrent
 # 本地汇总rss文件名
 total_xml_filename: total.xml
 # 本地汇总rss保留项目数
 max_items: 200
-## 启用简繁转换
-#cht_to_chs: 0
+# 启用简繁转换
+cht_to_chs: 0
 
 sites:
   dmhy:
     enable: 1
     rss_url: https://share.dmhy.org/topics/list/sort_id/2
-    local_xml: dmhy.xml
+    local_xml_filename: dmhy.xml
     refresh_interval: 6
     save_torrent: 0
+    save_torrent_relpath: dmhy
 
   acgrip:
     enable: 0
     rss_url: https://acg.rip/.xml
-    local_xml: acgrip.xml
+    local_xml_filename: acgrip.xml
     refresh_interval: 6
     save_torrent: 1
+    save_torrent_relpath: acgrip
 
   bangumimoe:
     enable: 0
     rss_url: https://bangumi.moe/rss/latest
-    local_xml: bangumimoe.xml
+    local_xml_filename: bangumimoe.xml
     refresh_interval: 6
     save_torrent: 1
+    save_torrent_relpath: bangumimoe
 
   acgnx:
     enable: 1
     rss_url: https://share.acgnx.se/rss-sort-1.xml
-    local_xml: acgnx.xml
+    local_xml_filename: acgnx.xml
     refresh_interval: 6
     save_torrent: 0
+    save_torrent_relpath: acgnx
 
   kisssub:
     enable: 1
     rss_url: http://www.kisssub.org/rss-1.xml
-    local_xml: kisssub.xml
+    local_xml_filename: kisssub.xml
     refresh_interval: 6
     save_torrent: 0
+    save_torrent_relpath: kisssub
 
   ncraw:
     enable: 1
     rss_url: https://ouo.si/feed?
-    local_xml: ncraw.xml
+    local_xml_filename: ncraw.xml
     refresh_interval: 6
     save_torrent: 0
+    save_torrent_relpath: ncraw
 
   mikan:
     enable: 0
-    rss_url: https://mikanani.me/RSS/MyBangumi?token=XXXXXX
-    local_xml: mikan.xml
+    rss_url: https://mikanani.me/RSS/MyBangumi?token=XXXXXXXXXX
+    local_xml_filename: mikan.xml
     refresh_interval: 10
     save_torrent: 0
+    save_torrent_relpath: mikan
 
   nyaa:
     enable: 0
     rss_url: https://nyaa.si/?page=rss&c=1_3
-    local_xml: nyaa.xml
+    local_xml_filename: nyaa.xml
+    # nyaa rss 刷新间隔必须 > 5min
     refresh_interval: 10
     save_torrent: 0
+    save_torrent_relpath: nyaa
 
 
 trackers:
