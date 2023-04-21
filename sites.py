@@ -31,7 +31,7 @@ class Site:
         self.single_feed = None
         self.single_rss = None
         self.torrents: [Torrent] = []
-        self.map_infohash: dict = {}
+        self.map_infohash = {}
 
     def fetch(self):
         ok = False
@@ -104,7 +104,7 @@ class Site:
                 infohash=e.links[1].href,
             ))
 
-        # de-duplicate torrents by magnet
+        # de-duplicate torrents by infohash
         tmp = {}
         for t in self.torrents:
             tmp[t.infohash] = t
@@ -117,14 +117,12 @@ class Site:
         # generate all-in-one rss xml
         items = []
         for t in self.torrents:
-            url = t.magnet
-            if not url:
-                url = t.torrent_url
             items.append(Item(
                 title=t.title,
                 pubDate=datetime.fromtimestamp(time.mktime(t.pubdate)),
                 link=t.link,
-                enclosure=Enclosure(url=url, length=1, type="application/x-bittorrent"),
+                enclosure=Enclosure(url=infohash_to_magnet(t.infohash),
+                                    length=0, type="application/x-bittorrent"),
             ))
         total_rss = Feed(
             title="bangumi rss",
@@ -183,6 +181,7 @@ class Common(Site):
                 pubdate=e.published_parsed,
                 link=e.link,
                 infohash=infohash))
+            logger.debug(f"class Common parse torrent: {infohash}")
 
 
 class Dmhy(Site):
@@ -196,6 +195,7 @@ class Dmhy(Site):
                 pubdate=e.published_parsed,
                 link=e.link,
                 infohash=infohash))
+            logger.debug(f"class Dmhy parse torrent: {infohash}")
 
 
 class Nyaa(Site):
@@ -208,6 +208,7 @@ class Nyaa(Site):
                 pubdate=e.published_parsed,
                 link=e.id,
                 infohash=e.nyaa_infohash))
+            logger.debug(f"class Nyaa parse torrent: {e.nyaa_infohash}")
 
 
 # class Rewrite can parse [Acgrip, Bangumimoe]
@@ -223,7 +224,7 @@ class Rewrite(Site):
                 link=e.link,
                 torrent_url=torrent_url))
 
-        # convert torrent to magnet
+        # convert torrent to infohash
         for t in self.torrents:
             # read infohash from map cache
             infohash = self.map_infohash[t.link]
@@ -248,3 +249,4 @@ class Rewrite(Site):
                         logger.error(e)
             if infohash:
                 t.infohash = infohash
+            logger.debug(f"class Rewrite parse torrent: {infohash}")

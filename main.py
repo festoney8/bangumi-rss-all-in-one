@@ -2,32 +2,40 @@ from sites import Dmhy, Nyaa, Common, Rewrite
 from config import config
 import schedule
 import time
+import os
+
+tasks = []
+
+
+def init():
+    if not os.path.exists(config["xml_abspath"]):
+        os.makedirs(config["xml_abspath"])
+    if not os.path.exists("torrent_cache"):
+        os.makedirs("torrent_cache")
 
 
 def register():
     s = config["sites"]
-    dmhy = Dmhy(s["dmhy"])
-    acgnx = Common(s["acgnx"])
     kisssub = Common(s["kisssub"])
-    mikan = Common(s["mikan"])
-    ncraw = Common(s["ncraw"])
-    nyaa = Nyaa(s["nyaa"])
-    acgrip = Rewrite(s["acgrip"])
-    bangumimoe = Rewrite(s["bangumimoe"])
-
-    dmhy.register_schedule()
-    acgnx.register_schedule()
-    kisssub.register_schedule()
-    mikan.register_schedule()
-    ncraw.register_schedule()
-    nyaa.register_schedule()
-    acgrip.register_schedule()
-    bangumimoe.register_schedule()
+    kisssub.run()
+    # s = config["sites"]
+    # tasks.append(Common(s["acgnx"]))
+    # tasks.append(Common(s["kisssub"]))
+    # tasks.append(Common(s["mikan"]))
+    # tasks.append(Common(s["ncraw"]))
+    # tasks.append(Dmhy(s["dmhy"]))
+    # tasks.append(Nyaa(s["nyaa"]))
+    # tasks.append(Rewrite(s["acgrip"]))
+    # tasks.append(Rewrite(s["bangumimoe"]))
+    #
+    # for task in tasks:
+    #     task.register_schedule()
 
 
 if __name__ == '__main__':
+    init()
     register()
 
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+    # while True:
+    #     schedule.run_pending()
+    #     time.sleep(1)
