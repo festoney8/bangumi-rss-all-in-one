@@ -1,8 +1,8 @@
-import os
 import time
 import requests
 import shutil
 from config import config
+from utils.logger import logger
 
 
 def download(url: str, filepath: str) -> bool:
@@ -17,7 +17,8 @@ def download(url: str, filepath: str) -> bool:
             ok = True
             break
         except Exception as e:
-            # log
+            logger.exception(e)
+            logger.exception(f"download torrent {url} failed, try {retry_cnt} times")
             pass
         if not ok:
             time.sleep(config["wait_sec"])

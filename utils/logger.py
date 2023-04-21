@@ -4,7 +4,6 @@ import os
 dir_name = os.path.dirname(__file__)
 
 logging.basicConfig(
-    # level=logging.INFO,
     level=logging.DEBUG,
     format='[%(asctime)s] %(levelname)s: %(message)s',
     datefmt='%Y/%m/%d %H:%M:%S',

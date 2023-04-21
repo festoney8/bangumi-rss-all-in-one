@@ -1,40 +1,39 @@
 import os
-import re
 import time
-import base64
 import urllib.parse
 import schedule
 import feedparser
-import binascii
 from datetime import datetime
 from rfeed import *
 from utils.downloader import download
-from utils.parse_torrent import get_info_hash
+from utils.magnet import *
+from utils.logger import logger
 from config import config
 
 
 class Torrent:
-    def __init__(self, title: str, pubdate: datetime, link="", magnet="", torrent_url=""):
+    def __init__(self, title: str, pubdate: datetime, link="", infohash="", torrent_url=""):
         self.title = title
         self.pubdate = pubdate
         self.link = link
-        self.magnet = magnet
+        self.infohash = infohash
         self.torrent_url = torrent_url
 
 
 class Site:
-    single_feed: feedparser.FeedParserDict
-    single_rss: rfeed.Feed
-    torrents: [Torrent]
-    map_info_hash: {}
-
-    def __init__(self, site_config):
+    def __init__(self, site_config: dict):
         self.enable = site_config["enable"]
         self.rss_url = site_config["rss_url"]
         self.refresh_interval = site_config["refresh_interval"]
         self.local_xml_file = site_config["local_xml_file"]
+        self.task_name = self.local_xml_file.replace(".xml", "")
 
-    def fetch_rss(self) -> bool:
+        self.single_feed = None
+        self.single_rss = None
+        self.torrents: [Torrent] = []
+        self.map_infohash: dict = {}
+
+    def fetch(self):
         ok = False
         retry_cnt = 0
         while not ok and retry_cnt < config["max_retry"]:
@@ -44,28 +43,30 @@ class Site:
                 ok = True
                 break
             except Exception as e:
+                logger.exception(f"fetch rss {self.rss_url} failed, try {retry_cnt} times")
+                logger.exception(e)
                 pass
             if not ok:
                 time.sleep(config["wait_sec"])
-        return ok
 
-    def parse_rss(self):
+    def parse(self):
         # impl in subclass, torrent info will save to self.torrents
         pass
 
-    def localize_rss(self):
+    def localize(self):
         # keep title, pubDate, link, enclosure
         if not self.torrents:
             return
         # generate local rss
         items = []
         for t in self.torrents:
-            items.append(Item(
+            item = Item(
                 title=t.title,
                 link=t.link,
-                pubDate=t.pubdate,
-                enclosure=Enclosure(url=t.magnet, type="application/x-bittorrent", length=0),
-            ))
+                pubDate=datetime.fromtimestamp(time.mktime(t.pubdate)),
+                enclosure=Enclosure(url=infohash_to_magnet(t.infohash), type="application/x-bittorrent", length=0),
+            )
+            items.append(item)
         self.single_rss = Feed(
             title=f"RSS Feed {self.local_xml_file}",
             link=self.rss_url,
@@ -76,37 +77,37 @@ class Site:
         # save xml file
         fpath = os.path.join(config["xml_abspath"], self.local_xml_file)
         with open(fpath, "w", encoding="utf8") as f:
-            f.write(self.single_feed.rss())
+            f.write(self.single_rss.rss())
+            logger.info(f"task {self.task_name} save to disk")
 
-    def merge_rss(self):
+    def merge(self):
         total_xml = os.path.join(config["xml_abspath"], config["total_xml_filename"])
         # if total rss file not exist, init it
         if not os.path.exists(total_xml):
             with open(total_xml, "w", encoding="utf8") as f:
                 f.write(self.single_rss.rss())
+                logger.debug(f"task {self.task_name} init, save to disk")
             return
 
         # merge single site rss and total rss
         feed = feedparser.parse(total_xml)
+        if not feed.entries:
+            with open(total_xml, "w", encoding="utf8") as f:
+                f.write(self.single_rss.rss())
+                logger.debug(f"task {self.task_name} init, save to disk")
+            return
         for e in feed.entries:
-            t = Torrent(
+            self.torrents.append(Torrent(
                 title=e.title,
                 link=e.link,
-                pubdate=datetime.fromtimestamp(time.mktime(e.published_parsed)),
-            )
-            url = e.links[1].href
-            if url.startsWith("magnet"):
-                t.magnet = url
-            elif url.endsWith(".torrent"):
-                t.torrent_url = url
-            self.torrents.append(t)
+                pubdate=e.published_parsed,
+                infohash=e.links[1].href,
+            ))
 
         # de-duplicate torrents by magnet
         tmp = {}
-        regex = re.compile(r"[0-9a-f]{40}")
         for t in self.torrents:
-            magnet = regex.findall(t.magnet)[0]
-            tmp[magnet] = t
+            tmp[t.infohash] = t
         self.torrents = tmp.values()
 
         # sort torrents by pubdate and limit amount
@@ -121,7 +122,7 @@ class Site:
                 url = t.torrent_url
             items.append(Item(
                 title=t.title,
-                pubDate=datetime.fromtimestamp(time.mktime(t.published_parsed)),
+                pubDate=datetime.fromtimestamp(time.mktime(t.pubdate)),
                 link=t.link,
                 enclosure=Enclosure(url=url, length=1, type="application/x-bittorrent"),
             ))
@@ -135,83 +136,83 @@ class Site:
         fpath = os.path.join(config["xml_abspath"], config["total_xml_filename"])
         with open(fpath, "w", encoding="utf8") as f:
             f.write(total_rss.rss())
+            logger.debug(f"task {self.task_name} merge to total, save to disk")
 
     def run(self):
-        ok = self.fetch_rss()
-        if ok:
-            try:
-                self.parse_rss()
-                self.localize_rss()
-                self.merge_rss()
-            except Exception as e:
-                pass
+        self.fetch()
+        if not self.single_feed or not self.single_feed.entries:
+            logger.error(f"fetch {self.task_name} failed")
+            return
+        try:
+            self.parse()
+            logger.info(f"parse {self.task_name}")
+        except Exception as e:
+            logger.error(f"task {self.task_name} parse failed")
+            logger.error(e)
+            return
+        try:
+            self.localize()
+            logger.info(f"localize {self.task_name}")
+        except Exception as e:
+            logger.error(f"task {self.task_name} localize failed")
+            logger.error(e)
+            return
+        try:
+            self.merge()
+            logger.info(f"merge {self.task_name}")
+        except Exception as e:
+            logger.error(f"task {self.task_name} merge failed")
+            logger.error(e)
+            return
 
     def register_schedule(self):
         if self.enable:
             schedule.every(self.refresh_interval).minutes.do(self.run)
+            logger.info(f"register schedule {self.task_name}")
 
 
 # class Common can parse [acgnx, kisssub, ncraw, mikan]
 class Common(Site):
-    regex = re.compile(r"[0-9a-f]{40}")
-
-    def parse_rss(self):
+    def parse(self):
         self.torrents = self.torrents[:0]
         entries = self.single_feed.entries
         for e in entries:
-            # add trackers to magnet and urlencoded it
-            magnet = "magnet:?xt=urn:btih:" + re.findall(self.regex, e.link)[0]
-            magnet = "&tr=".join([magnet] + config["trackers"])
-            magnet = urllib.parse.quote_plus(magnet)
+            infohash = detect_infohash(e.link)
             self.torrents.append(Torrent(
                 title=e.title,
                 pubdate=e.published_parsed,
                 link=e.link,
-                magnet=magnet))
+                infohash=infohash))
 
 
 class Dmhy(Site):
-    # dmhy use base32 magnet
-    regex = re.compile(r"[0-9A-Z]{32}")
-
-    def parse_rss(self):
+    def parse(self):
         self.torrents = self.torrents[:0]
         entries = self.single_feed.entries
         for e in entries:
-            magnet = e.links[1].href
-            # convert DMHY base32 magnet to hex magnet
-            base32_bytes = re.findall(self.regex, magnet)[0]
-            base64_bytes = base64.b32decode(base32_bytes.encode('ascii'))
-            hex_bytes = binascii.hexlify(base64_bytes)
-            magnet = "magnet:?xt=urn:btih:" + hex_bytes.decode('ascii')
-            # add trackers and urlencoded it
-            magnet = "&tr=".join([magnet] + config["trackers"])
-            magnet = urllib.parse.quote_plus(magnet)
+            infohash = detect_infohash(e.links[1].href)
             self.torrents.append(Torrent(
                 title=e.title,
                 pubdate=e.published_parsed,
                 link=e.link,
-                magnet=magnet))
+                infohash=infohash))
 
 
 class Nyaa(Site):
-    def parse_rss(self):
+    def parse(self):
         self.torrents = self.torrents[:0]
         entries = self.single_feed.entries
         for e in entries:
-            magnet = "magnet:?xt=urn:btih:" + e.nyaa_infohash
-            magnet = "&tr=".join([magnet] + config["trackers"])
-            magnet = urllib.parse.quote_plus(magnet)
             self.torrents.append(Torrent(
                 title=e.title,
                 pubdate=e.published_parsed,
                 link=e.id,
-                magnet=magnet))
+                infohash=e.nyaa_infohash))
 
 
 # class Rewrite can parse [Acgrip, Bangumimoe]
 class Rewrite(Site):
-    def parse_rss(self):
+    def parse(self):
         self.torrents = self.torrents[:0]
         entries = self.single_feed.entries
         for e in entries:
@@ -224,11 +225,11 @@ class Rewrite(Site):
 
         # convert torrent to magnet
         for t in self.torrents:
-            # read info_hash from map cache
-            info_hash = self.map_info_hash[t.link]
-            if not info_hash:
+            # read infohash from map cache
+            infohash = self.map_infohash[t.link]
+            if not infohash:
                 # download and parse torrent file
-                # get info_hash then write map cache
+                # get infohash then update map cache
                 t_name = t.torrent_url.split("/")[-1]
                 t_file = os.path.join("torrent_cache", t_name)
                 # if torrent exist, skip download
@@ -237,9 +238,13 @@ class Rewrite(Site):
                 else:
                     ok = download(t.torrent_url, t_file)
                 if ok:
-                    info_hash = get_info_hash(t_file)
-                    self.map_info_hash[t.link] = info_hash
-            if info_hash:
-                t.magnet = "magnet:?xt=urn:btih:" + info_hash
-                t.magnet = "&tr=".join([t.magnet] + config["trackers"])
-                t.magnet = urllib.parse.quote_plus(t.magnet)
+                    logger.debug(f"download torrent {t.torrent_url}")
+                    try:
+                        infohash = get_torrent_infohash(t_file)
+                        self.map_infohash[t.link] = infohash
+                        logger.debug(f"get torrent {t_file} info hash, {infohash}")
+                    except Exception as e:
+                        logger.error(f"get torrent {t_file} info hash failed")
+                        logger.error(e)
+            if infohash:
+                t.infohash = infohash
