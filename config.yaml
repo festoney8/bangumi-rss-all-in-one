@@ -1,9 +1,9 @@
 # xml文件存储绝对路径，配合nginx使用
-#xml_abspath: /var/www/html/
-xml_abspath: test_xml_path
+xml_abspath: /var/www/html/
+#xml_abspath: test_xml_path
 # 聚合rss文件名
 total_xml_filename: rss.xml
-# 本地汇总rss保留项目数
+# 聚合rss保留项目数
 max_items: 200
 
 sites:
@@ -14,32 +14,32 @@ sites:
   #    rss_url: https://example.com/rss.xml
   #    # 单个站点rss文件, 各任务rss名称不可相同
   #    local_xml_file: example.xml
-  #    # 刷新间隔(min), 建议高于5min
+  #    # 刷新间隔(min), 必须高于5min
   #    refresh_interval: 10
 
   dmhy:
     enable: 1
     rss_url: https://share.dmhy.org/topics/rss/sort_id/2/rss.xml
     local_xml_file: dmhy.xml
-    refresh_interval: 6
+    refresh_interval: 10
 
   acgnx:
     enable: 1
     rss_url: https://share.acgnx.se/rss-sort-1.xml
     local_xml_file: acgnx.xml
-    refresh_interval: 6
+    refresh_interval: 10
 
   kisssub:
     enable: 1
     rss_url: http://www.kisssub.org/rss-1.xml
     local_xml_file: kisssub.xml
-    refresh_interval: 6
+    refresh_interval: 10
 
   ncraw:
     enable: 1
     rss_url: https://ouo.si/feed?
     local_xml_file: ncraw.xml
-    refresh_interval: 6
+    refresh_interval: 10
 
   mikan:
     enable: 0
@@ -49,7 +49,7 @@ sites:
     refresh_interval: 10
 
   nyaa:
-    enable: 1
+    enable: 0
     rss_url: https://nyaa.si/?page=rss&c=1_3
     local_xml_file: nyaa.xml
     # nyaa rss 刷新间隔必须足够长, 频繁刷新触发IP封禁
@@ -69,7 +69,7 @@ sites:
     enable: 0
     rss_url: https://bangumi.moe/rss/latest
     local_xml_file: bangumimoe.xml
-    refresh_interval: 6
+    refresh_interval: 10
 
 
 add_trackers_to_magnet: 1
