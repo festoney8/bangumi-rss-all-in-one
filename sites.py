@@ -172,6 +172,10 @@ class Site:
             logger.error(e)
             return
 
+    def testrun(self):
+        if self.enable:
+            self.run()
+
     def register_schedule(self):
         if self.enable:
             schedule.every(self.refresh_interval).minutes.do(self.run)
