@@ -5,6 +5,7 @@ from datetime import datetime
 import feedparser
 import schedule
 from rfeed import *
+from html import unescape
 
 from utils.downloader import download
 from utils.logger import logger
@@ -90,7 +91,7 @@ class Site:
             item = Item(
                 title=t.title,
                 link=t.link,
-                pubDate=datetime.fromtimestamp(time.mktime(t.pubdate)),
+                pubDate=datetime.utcfromtimestamp(time.mktime(t.pubdate)),
                 enclosure=Enclosure(url=infohash_to_magnet(t.infohash), type="application/x-bittorrent", length=0),
             )
             items.append(item)
@@ -151,7 +152,7 @@ class Site:
         for t in self.torrents:
             items.append(Item(
                 title=t.title,
-                pubDate=datetime.fromtimestamp(time.mktime(t.pubdate)),
+                pubDate=datetime.utcfromtimestamp(time.mktime(t.pubdate)),
                 link=t.link,
                 enclosure=Enclosure(url=infohash_to_magnet(t.infohash),
                                     length=0, type="application/x-bittorrent"),
@@ -230,7 +231,7 @@ class Common(Site):
         for e in entries:
             infohash = detect_infohash(e.link)
             self.torrents.append(Torrent(
-                title=e.title,
+                title=unescape(e.title),
                 pubdate=e.published_parsed,
                 link=e.link,
                 infohash=infohash))
@@ -244,7 +245,7 @@ class Dmhy(Site):
         for e in entries:
             infohash = detect_infohash(e.links[1].href)
             self.torrents.append(Torrent(
-                title=e.title,
+                title=unescape(e.title),
                 pubdate=e.published_parsed,
                 link=e.link,
                 infohash=infohash))
@@ -257,7 +258,7 @@ class Nyaa(Site):
         entries = self.single_feed.entries
         for e in entries:
             self.torrents.append(Torrent(
-                title=e.title,
+                title=unescape(e.title),
                 pubdate=e.published_parsed,
                 link=e.id,
                 infohash=e.nyaa_infohash))
@@ -276,7 +277,7 @@ class Rewrite(Site):
         for e in entries:
             torrent_url = e.links[1].href
             self.torrents.append(Torrent(
-                title=e.title,
+                title=unescape(e.title),
                 pubdate=e.published_parsed,
                 link=e.link,
                 torrent_url=torrent_url))
