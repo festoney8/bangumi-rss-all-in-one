@@ -21,6 +21,11 @@ class Torrent:
 
 
 class Site:
+    """
+    baseclass, the main process is func `run()`
+    the `parse()` process is according to each site, it's override by subclass
+    """
+
     def __init__(self, site_config: dict):
         self.enable = site_config["enable"]
         self.rss_url = site_config["rss_url"]
@@ -34,6 +39,10 @@ class Site:
         self.map_infohash = {}
 
     def fetch(self):
+        """
+        fetch rss by url and try to parse it using feedparser
+        :return:
+        """
         ok = False
         retry_cnt = 0
         while not ok and retry_cnt < config["max_retry"]:
@@ -59,11 +68,20 @@ class Site:
                 time.sleep(config["fetch_wait_sec"])
 
     def parse(self):
-        # impl in subclass, torrent info will save to self.torrents
+        """
+        impl in each subclass
+        extract torrent info from rss feed self.single_feed
+        torrent info will save to self.torrents
+        :return:
+        """
         pass
 
     def localize(self):
-        # keep title, pubDate, link, enclosure
+        """
+        simplify the rss content, only keep title, pubDate, link, enclosure
+        save single site rss xml file locally
+        :return:
+        """
         if not self.torrents:
             return
         # generate local rss
@@ -87,9 +105,14 @@ class Site:
         fpath = os.path.join(config["xml_abspath"], self.local_xml_file)
         with open(fpath, "w", encoding="utf8") as f:
             f.write(self.single_rss.rss())
-            logger.info(f"task {self.taskname} save to disk")
+            logger.debug(f"task {self.taskname} save to disk")
 
     def merge(self):
+        """
+        merge single site rss to total rss
+        de-duplicate torrents and generate new total rss
+        :return:
+        """
         total_xml = os.path.join(config["xml_abspath"], config["total_xml_filename"])
         # if total rss file not exist, init it
         if not os.path.exists(total_xml):
@@ -146,6 +169,11 @@ class Site:
             logger.debug(f"task {self.taskname} merge to total, save to disk")
 
     def run(self):
+        """
+        main process of the project
+        fetch, parse, localize and merge
+        :return:
+        """
         self.fetch()
         if not self.single_feed or not self.single_feed.entries:
             logger.error(f"fetch {self.taskname} failed")
@@ -173,17 +201,28 @@ class Site:
             return
 
     def testrun(self):
+        """
+        run immediately
+        :return:
+        """
         if self.enable:
             self.run()
 
     def register_schedule(self):
+        """
+        register cron job
+        :return:
+        """
         if self.enable:
             schedule.every(self.refresh_interval).minutes.do(self.run)
             logger.info(f"register schedule {self.taskname}")
 
 
-# class Common can parse [acgnx, kisssub, ncraw, mikan]
 class Common(Site):
+    """
+    Common can parse [acgnx, kisssub, ncraw, mikan]
+    """
+
     def parse(self):
         self.torrents = self.torrents[:0]
         entries = self.single_feed.entries
@@ -224,8 +263,12 @@ class Nyaa(Site):
             logger.debug(f"task {self.taskname} parse torrent: {e.nyaa_infohash}")
 
 
-# class Rewrite can parse [Acgrip, Bangumimoe]
 class Rewrite(Site):
+    """
+    Rewrite can parse [Acgrip, Bangumimoe]
+    cannot find info_hash from these sites, so have to convert .torrent file to magnet
+    """
+
     def parse(self):
         self.torrents = self.torrents[:0]
         entries = self.single_feed.entries
