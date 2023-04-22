@@ -52,7 +52,7 @@ class Site:
                 else:
                     logger.error(f"task {self.taskname} fetch feed failed, http status {self.single_feed.status}")
             except Exception as e:
-                logger.error(f"fetch rss {self.rss_url} failed")
+                logger.error(f"task {self.taskname} fetch feed failed")
                 logger.error(e)
                 pass
             if not ok:
@@ -110,7 +110,7 @@ class Site:
                 title=e.title,
                 link=e.link,
                 pubdate=e.published_parsed,
-                infohash=e.links[1].href,
+                infohash=detect_infohash(e.links[1].href),
             ))
 
         # de-duplicate torrents by infohash
