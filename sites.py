@@ -247,6 +247,7 @@ class Rewrite(Site):
                     ok = True
                 else:
                     ok = download(t.torrent_url, t_file)
+                    time.sleep(config["download_wait_sec"])
                 if ok:
                     logger.debug(f"download torrent {t.torrent_url}")
                     try:
