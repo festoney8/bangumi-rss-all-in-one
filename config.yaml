@@ -71,7 +71,7 @@ sites:
     refresh_interval: 6
 
 
-add_trackers_to_magnet: 0
+add_trackers_to_magnet: 1
 trackers:
   - https://tracker.mlsub.net:443/announce
   - https://trackers.mlsub.net:443/announce
