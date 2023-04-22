@@ -1,7 +1,10 @@
 import os
+import time
+
+import schedule
 
 from config import config
-from sites import Rewrite
+from sites import Rewrite, Common, Dmhy, Nyaa
 
 tasks = []
 
@@ -15,25 +18,23 @@ def init():
 
 def register():
     s = config["sites"]
-    acgrip = Rewrite(s["acgrip"])
-    acgrip.run()
-    # tasks.append(Common(s["acgnx"]))
-    # tasks.append(Common(s["kisssub"]))
-    # tasks.append(Common(s["mikan"]))
-    # tasks.append(Common(s["ncraw"]))
-    # tasks.append(Dmhy(s["dmhy"]))
-    # tasks.append(Nyaa(s["nyaa"]))
-    # tasks.append(Rewrite(s["acgrip"]))
-    # tasks.append(Rewrite(s["bangumimoe"]))
-    #
-    # for task in tasks:
-    #     task.register_schedule()
+    tasks.append(Common(s["acgnx"]))
+    tasks.append(Common(s["kisssub"]))
+    tasks.append(Common(s["mikan"]))
+    tasks.append(Common(s["ncraw"]))
+    tasks.append(Dmhy(s["dmhy"]))
+    tasks.append(Nyaa(s["nyaa"]))
+    tasks.append(Rewrite(s["acgrip"]))
+    tasks.append(Rewrite(s["bangumimoe"]))
+
+    for task in tasks:
+        task.register_schedule()
 
 
 if __name__ == '__main__':
     init()
     register()
 
-    # while True:
-    #     schedule.run_pending()
-    #     time.sleep(1)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)

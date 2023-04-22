@@ -23,5 +23,5 @@ def download(url: str, filepath: str) -> bool:
             logger.error(e)
             pass
         if not ok:
-            time.sleep(config["wait_sec"])
+            time.sleep(config["download_wait_sec"])
     return ok

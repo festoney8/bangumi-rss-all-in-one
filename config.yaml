@@ -1,6 +1,6 @@
 # xml文件存储绝对路径，配合nginx使用
 #xml_abspath: /var/www/html/
-xml_abspath: "test_xml_path"
+xml_abspath: test_xml_path
 # 聚合rss文件名
 total_xml_filename: rss.xml
 # 本地汇总rss保留项目数
@@ -42,13 +42,13 @@ sites:
     refresh_interval: 6
 
   mikan:
-    enable: 0
+    enable: 1
     rss_url: https://mikanani.me/RSS/MyBangumi?token=XXXXXXXXXX
     local_xml_file: mikan.xml
     refresh_interval: 10
 
   nyaa:
-    enable: 0
+    enable: 1
     rss_url: https://nyaa.si/?page=rss&c=1_3
     local_xml_file: nyaa.xml
     # nyaa rss 刷新间隔必须足够长, 频繁刷新触发IP封禁
@@ -87,4 +87,5 @@ trackers:
 # 其他设定
 useragent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
 max_retry: 3
-wait_sec: 10
+fetch_wait_sec: 10
+download_wait_sec: 3

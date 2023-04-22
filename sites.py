@@ -56,7 +56,7 @@ class Site:
                 logger.error(e)
                 pass
             if not ok:
-                time.sleep(config["wait_sec"])
+                time.sleep(config["fetch_wait_sec"])
 
     def parse(self):
         # impl in subclass, torrent info will save to self.torrents
