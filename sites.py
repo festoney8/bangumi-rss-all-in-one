@@ -174,6 +174,7 @@ class Site:
         fetch, parse, localize and merge
         :return:
         """
+        logger.info(f"########### task {self.taskname} start ###########")
         self.fetch()
         if not self.single_feed or not self.single_feed.entries:
             logger.error(f"fetch {self.taskname} failed")
