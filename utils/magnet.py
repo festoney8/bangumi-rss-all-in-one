@@ -31,8 +31,7 @@ def detect_infohash(href: str) -> str:
     return ""
 
 
-def infohash_to_magnet(info_hash: str) -> str:
+def infohash_to_magnet(infohash: str) -> str:
     if config["add_trackers_to_magnet"]:
-        magnet = "&tr=".join([info_hash] + config["trackers"])
-        return "magnet:?xt=urn:btih:" + urllib.parse.quote_plus(magnet)
-    return "magnet:?xt=urn:btih:" + info_hash
+        return "magnet:?xt=urn:btih:" + "&tr=".join([infohash] + config["trackers"])
+    return "magnet:?xt=urn:btih:" + infohash
