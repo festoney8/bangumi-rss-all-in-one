@@ -1,6 +1,8 @@
-import time
-import requests
 import shutil
+import time
+
+import requests
+
 from config import config
 from utils.logger import logger
 

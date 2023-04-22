@@ -1,9 +1,11 @@
-import binascii
 import base64
-import bencodepy
+import binascii
 import hashlib
 import re
 import urllib.parse
+
+import bencodepy
+
 from config import config
 
 

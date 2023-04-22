@@ -1,6 +1,8 @@
 import os
-import yaml
 from pathlib import Path
+
+import yaml
+
 from utils.logger import logger
 
 path = Path(__file__).resolve().parent

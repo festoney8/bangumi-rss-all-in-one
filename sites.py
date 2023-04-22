@@ -1,14 +1,14 @@
 import os
 import time
-import urllib.parse
-import schedule
-import feedparser
 from datetime import datetime
+
+import feedparser
+import schedule
 from rfeed import *
+
 from utils.downloader import download
-from utils.magnet import *
 from utils.logger import logger
-from config import config
+from utils.magnet import *
 
 
 class Torrent:

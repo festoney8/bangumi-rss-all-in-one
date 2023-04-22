@@ -1,8 +1,7 @@
-from sites import Dmhy, Nyaa, Common, Rewrite
-from config import config
-import schedule
-import time
 import os
+
+from config import config
+from sites import Rewrite
 
 tasks = []
 
