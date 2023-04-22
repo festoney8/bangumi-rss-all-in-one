@@ -1,6 +1,5 @@
 # xml文件存储绝对路径，配合nginx使用
 xml_abspath: /var/www/html/
-#xml_abspath: test_xml_path
 # 聚合rss文件名
 total_xml_filename: rss.xml
 # 聚合rss保留项目数
@@ -72,7 +71,7 @@ sites:
     refresh_interval: 10
 
 
-add_trackers_to_magnet: 1
+add_trackers_to_magnet: 0
 trackers:
   - https://tracker.mlsub.net:443/announce
   - https://trackers.mlsub.net:443/announce

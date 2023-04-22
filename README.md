@@ -14,7 +14,12 @@
 
 ## 运行
 
-1. 启用nginx
+1. 启用nginx，对xml静态文件开启gzip压缩
+
+    ```
+    gzip on;
+    gzip_types text/xml application/xml;
+    ```
 
 2. clone项目，运行 `pip install -r requirements.txt` 安装第三方库
 
