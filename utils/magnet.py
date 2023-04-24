@@ -2,7 +2,6 @@ import base64
 import binascii
 import hashlib
 import re
-import urllib.parse
 
 import bencodepy
 

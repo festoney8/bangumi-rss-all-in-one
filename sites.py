@@ -1,11 +1,12 @@
+import calendar
 import os
 import time
 from datetime import datetime
+from html import unescape
 
 import feedparser
 import schedule
 from rfeed import *
-from html import unescape
 
 from utils.downloader import download
 from utils.logger import logger
@@ -73,6 +74,23 @@ class Site:
         impl in each subclass
         extract torrent info from rss feed self.single_feed
         torrent info will save to self.torrents
+
+        Bugfix:
+        The pubDate in rss v2.0 is RFC822 format, such as
+        `Wed, 19 Apr 2023 16:49:20 GMT` or `Mon, 24 Apr 2023 03:15:00 +0800`.
+        feedparser `entries[i].published_parsed` auto convert it to time.struct_time in GMT.
+        rfeed need datetime to generate feed item.
+
+        `datetime.fromtimestamp(time.mktime())` can convert struct_time to datetime,
+        but `time.mktime()` is according to system timezone.
+        So if rss pubdate and system use different timezone, `time.mktime()` will cause pubdate mistake.
+        Example:
+            System timezone = GMT+8
+            GMT pubDate -> GMT published_parsed -> mktime() -> wrong timestamp(+8h) -> rfeed wrong pubdate
+        After `merge()` serval times, the pubdate moving will affect more.
+
+        Solution: use calendar.timegm() instead of time.mktime()
+        Ref: https://stackoverflow.com/questions/2956886
         :return:
         """
         pass
@@ -91,15 +109,16 @@ class Site:
             item = Item(
                 title=t.title,
                 link=t.link,
-                pubDate=datetime.utcfromtimestamp(time.mktime(t.pubdate)),
+                # rfeed need GMT input
+                pubDate=datetime.utcfromtimestamp(calendar.timegm(t.pubdate)),
                 enclosure=Enclosure(url=infohash_to_magnet(t.infohash), type="application/x-bittorrent", length=0),
             )
             items.append(item)
         self.single_rss = Feed(
-            title=f"RSS Feed {self.local_xml_file}",
+            title=f"{self.taskname} rss",
             link=self.rss_url,
-            description="Generate by bangumi rss all in one",
-            lastBuildDate=datetime.now(),
+            description="Generate by bangumi rss all-in-one",
+            lastBuildDate=datetime.utcnow(),
             items=items
         )
         # save xml file
@@ -152,7 +171,8 @@ class Site:
         for t in self.torrents:
             items.append(Item(
                 title=t.title,
-                pubDate=datetime.utcfromtimestamp(time.mktime(t.pubdate)),
+                # rfeed need GMT input
+                pubDate=datetime.utcfromtimestamp(calendar.timegm(t.pubdate)),
                 link=t.link,
                 enclosure=Enclosure(url=infohash_to_magnet(t.infohash),
                                     length=0, type="application/x-bittorrent"),
@@ -161,7 +181,7 @@ class Site:
             title="bangumi rss",
             link="",
             description="Generate by bangumi rss all in one",
-            lastBuildDate=datetime.now(),
+            lastBuildDate=datetime.utcnow(),
             items=items
         )
         fpath = os.path.join(config["xml_abspath"], config["total_xml_filename"])
