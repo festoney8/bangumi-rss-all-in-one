@@ -6,6 +6,8 @@
 
 - 支持多数动漫发布站 (dmhy/acgnx/kisssub/mikan/ncraw/nyaa/acgrip/bangumimoe)
 
+- 支持缓存单站RSS
+
 ## 运行环境
 
 0. 部署机器需对资源站网络可达
