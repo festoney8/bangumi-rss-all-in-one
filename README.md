@@ -2,38 +2,37 @@
 
 ## 功能
 
-- 将多个动漫发布站的RSS合并为一个文件，配合Nginx搭建个人RSS聚合，可多人共用
+- 将多个动漫发布站的RSS合并为一个文件，配合Nginx搭建RSS聚合，可多人共用
 
 - 支持多数动漫发布站 (dmhy/acgnx/kisssub/mikan/ncraw/nyaa/acgrip/bangumimoe)
 
 ## 运行环境
 
-0. 部署机器需对目标站点网络可达
+0. 部署机器需对资源站网络可达
 1. Python >= 3.7
 2. Nginx 或 Apache 等网页服务器
 
 ## 运行
 
-1. 启用nginx，对xml静态文件开启gzip压缩
 
-    ```
-    gzip on;
-    gzip_types text/xml application/xml;
-    ```
+1. clone项目，运行 `pip install -r requirements.txt` 安装第三方库
 
-2. clone项目，运行 `pip install -r requirements.txt` 安装第三方库
-
-3. 在 `config.yaml` 文件中根据个人需求调整站点设置
+2. 在 `config.yaml` 文件中根据个人需求调整站点设置
 
     注意配置中`xml_abspath`应设置为nginx网页路径 (如 `/var/www/html` )
 
-4. 测试运行 `python3 test.py`
+3. 测试运行 `python3 test.py`
 
    观察日志输出有无Error，有无站点无法连接的情况，并适当调整配置
 
    查看nginx网页路径下是否有xml文件生成
 
-   查看通过URL是否可访问xml文件
+4. 启用nginx，对xml静态文件开启gzip压缩，查看通过URL是否可访问xml文件
+
+    ```
+    gzip on;
+    gzip_types text/xml application/xml;
+    ```
 
 5. 编写 `systemd` 服务
 
@@ -53,7 +52,7 @@
     [Service]
     Type=simple
     Restart=always
-    ExecStart=/usr/bin/python3 /<path>/main.py
+    ExecStart=/usr/bin/python3 /<PATH_TO_PROJECT>/main.py
     [Install]
     WantedBy=multi-user.target
     ```
