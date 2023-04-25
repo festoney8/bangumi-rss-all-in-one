@@ -33,6 +33,7 @@ class Site:
         self.rss_url = site_config["rss_url"]
         self.refresh_interval = site_config["refresh_interval"]
         self.local_xml_file = site_config["local_xml_file"]
+        self.enable_merge = site_config["enable_merge"]
         self.taskname = self.local_xml_file.replace(".xml", "")
 
         self.single_feed = None
@@ -215,6 +216,8 @@ class Site:
             logger.error(e)
             return
         try:
+            if not self.enable_merge:
+                return
             self.merge()
             logger.info(f"merge {self.taskname}")
         except Exception as e:

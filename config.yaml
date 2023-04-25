@@ -15,30 +15,36 @@ sites:
   #    local_xml_file: example.xml
   #    # 刷新间隔(min), 必须高于5min
   #    refresh_interval: 10
+  #    # 是否合并到聚合rss
+  #    enable_merge: 1
 
   dmhy:
     enable: 1
     rss_url: https://share.dmhy.org/topics/rss/sort_id/2/rss.xml
     local_xml_file: dmhy.xml
     refresh_interval: 10
+    enable_merge: 1
 
   acgnx:
     enable: 1
     rss_url: https://share.acgnx.se/rss-sort-1.xml
     local_xml_file: acgnx.xml
     refresh_interval: 10
+    enable_merge: 1
 
   kisssub:
     enable: 1
     rss_url: http://www.kisssub.org/rss-1.xml
     local_xml_file: kisssub.xml
     refresh_interval: 10
+    enable_merge: 1
 
   ncraw:
     enable: 1
     rss_url: https://ouo.si/feed?
     local_xml_file: ncraw.xml
     refresh_interval: 10
+    enable_merge: 1
 
   mikan:
     enable: 0
@@ -46,13 +52,15 @@ sites:
     rss_url: https://mikanani.me/RSS/MyBangumi?token=XXXXXXXXXXXXX
     local_xml_file: mikan.xml
     refresh_interval: 10
+    enable_merge: 0
 
   nyaa:
     enable: 0
-    rss_url: https://nyaa.si/?page=rss&c=1_3
+    rss_url: https://nyaa.si/?page=rss&c=1_0
     local_xml_file: nyaa.xml
     # nyaa rss 刷新间隔必须足够长, 频繁刷新触发IP封禁
     refresh_interval: 10
+    enable_merge: 0
 
   acgrip:
     # acgrip rss不提供magnet
@@ -61,6 +69,7 @@ sites:
     rss_url: https://acg.rip/.xml
     local_xml_file: acgrip.xml
     refresh_interval: 10
+    enable_merge: 1
 
   bangumimoe:
     # bangumimoe rss不提供magnet
@@ -69,6 +78,7 @@ sites:
     rss_url: https://bangumi.moe/rss/latest
     local_xml_file: bangumimoe.xml
     refresh_interval: 10
+    enable_merge: 1
 
 
 add_trackers_to_magnet: 1
